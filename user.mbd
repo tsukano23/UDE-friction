@@ -53,7 +53,7 @@ begin: elements;
       500., null, eye;
    user defined: 21, seabed,
       g,
-      -10.0;        #z_seabed,
+      -1.0;        #z_seabed,
    user defined: 22, contactlaw,
       1,
       21,

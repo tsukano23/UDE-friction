@@ -276,12 +276,12 @@ Contactlaw::AssRes(
 			std::cout << "61" << std::endl;
 		}else{
 			c1 = 1.0;
-			C2 = 0.0;
+			c2 = 0.0;
 			std::cout << "62" << std::endl;
 		}
 	}
 	
-	F = (k*(Zs - z) +c*v)*c1 + mg*c2;
+	F = (k*(Zs - z) +c*v)*c1 + m*g*c2;
 
 	//set value
 	WorkVec.PutCoef(1, F);
@@ -322,18 +322,18 @@ Contactlaw::AssJac(
 	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
 		A = 0;
-		std::cout << "60" << std::endl;
+		std::cout << "63" << std::endl;
 	} else {
 		if(v = 0){
 			//c1 = 0.0;
 			//C2 = 1.0;
 			A = 0;
-			std::cout << "61" << std::endl;
+			std::cout << "64" << std::endl;
 		}else{
 			//c1 = 1.0;
 			//C2 = 0.0;
 			A = c - dCoef*k;
-			std::cout << "62" << std::endl;
+			std::cout << "65" << std::endl;
 		}
 	}
 	
