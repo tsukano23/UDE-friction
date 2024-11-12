@@ -54,7 +54,8 @@ private:
 	const StructNode *pNode;
 	const Seabed *pSeabed;
 	doublereal m; 
-	doublereal n_node;
+	doublereal k;
+	doublereal c;
 
 public:
 	/*===================================================================

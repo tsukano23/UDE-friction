@@ -53,12 +53,16 @@ begin: elements;
       500., null, eye;
    user defined: 21, seabed,
       g,
-      -100.0;        #z_seabed,
+      -10.0;        #z_seabed,
    user defined: 22, contactlaw,
       1,
       21,
-      m,          10.0,                           
-	   n_node,     1.0;
+      m,
+         10.0,                           
+	   k,       
+         10000.0, # 1,000 - 10,000 N/m が砂質のばね係数の範囲の想定
+      c,          
+         1000.0;  # 500 - 2,000 Ns/mが砂質の減衰係数の範囲の想定
    gravity:
       uniform, 0.0, 0.0, -1.0,
       const, g;

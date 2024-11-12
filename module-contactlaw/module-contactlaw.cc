@@ -91,17 +91,24 @@ Contactlaw::Contactlaw (
 
 	// read Mass
 	if (!HP.IsKeyWord("m")) {
-		silent_cerr("UserDefinedSpring(" << GetLabel() << "): keyword \"m\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"m\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	m = HP.GetReal();
 
-	// read n_node
-	if (!HP.IsKeyWord("n_node")) {
-		silent_cerr("UserDefinedSpring(" << GetLabel() << "): keyword \"n_node\" expected at line " << HP.GetLineData() << std::endl);
+	// read k
+	if (!HP.IsKeyWord("k")) {
+		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"k\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	n_node = HP.GetReal();
+	k = HP.GetReal();
+
+	// read c
+	if (!HP.IsKeyWord("c")) {
+		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"c\" expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	c = HP.GetReal();
 
 	std ::cout << "3" << std::endl;
 
@@ -253,19 +260,28 @@ Contactlaw::AssRes(
 	//calculate forces
 	doublereal g,Zs;
 	pSeabed->get(g, Zs);
-	doublereal C;
+	doublereal c1;
+	doublereal c2;
 	doublereal F;
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
+	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
-		C = 0.0;
+		F = 0;
 		std::cout << "60" << std::endl;
 	} else {
-		C = 1.0;
-		std::cout << "61" << std::endl;
+		if(v = 0){
+			c1 = 0.0;
+			c2 = 1.0;
+			std::cout << "61" << std::endl;
+		}else{
+			c1 = 1.0;
+			C2 = 0.0;
+			std::cout << "62" << std::endl;
 		}
+	}
 	
-	F = C*m*g / n_node;
+	F = (k*(Zs - z) +c*v)*c1 + mg*c2;
 
 	//set value
 	WorkVec.PutCoef(1, F);
@@ -299,21 +315,31 @@ Contactlaw::AssJac(
 	//calculate forces
 	doublereal g,Zs;
 	pSeabed->get(g,Zs);
-	doublereal dC_dx;
+	doublereal A;
 	doublereal dF_dx;
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
+	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
-		dC_dx = 0.0;
-		std::cout << "62" << std::endl;
+		A = 0;
+		std::cout << "60" << std::endl;
 	} else {
-			dC_dx = 0.0;
-			std::cout << "63" << std::endl;
+		if(v = 0){
+			//c1 = 0.0;
+			//C2 = 1.0;
+			A = 0;
+			std::cout << "61" << std::endl;
+		}else{
+			//c1 = 1.0;
+			//C2 = 0.0;
+			A = c - dCoef*k;
+			std::cout << "62" << std::endl;
 		}
-	dF_dx = dC_dx*m*g / n_node;
+	}
+	
 
 	// set value
-	WM.PutCoef( 1,  1, -dF_dx*dCoef );
+	WM.PutCoef( 1,  1, A );
 	return WorkMat;
 	std ::cout << "16" << std::endl;
 }
