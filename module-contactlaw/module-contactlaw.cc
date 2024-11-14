@@ -269,7 +269,7 @@ Contactlaw::AssRes(
 		c1 = 0.0;
 		std::cout << "60" << std::endl;
 	} else {
-		if(v => 0){
+		if(v >= 0){
 			c1 = 0.0;
 			std::cout << "61" << std::endl;
 		}else{
@@ -313,7 +313,7 @@ Contactlaw::AssJac(
 	doublereal g,Zs;
 	pSeabed->get(g,Zs);
 	doublereal A;
-	doublereal c1;
+	doublereal dc1_dx;
 	doublereal dF_dx;
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
@@ -322,7 +322,7 @@ Contactlaw::AssJac(
 		dc1_dx = 0.0;
 		std::cout << "63" << std::endl;
 	} else {
-		if(v => 0){
+		if(v >= 0){
 			dc1_dx = 0.0;
 			std::cout << "64" << std::endl;
 		}else{
