@@ -261,27 +261,24 @@ Contactlaw::AssRes(
 	doublereal g,Zs;
 	pSeabed->get(g, Zs);
 	doublereal c1;
-	doublereal c2;
 	doublereal F;
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
 	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
-		F = 0;
+		c1 = 0.0;
 		std::cout << "60" << std::endl;
 	} else {
-		if(v = 0){
+		if(v => 0){
 			c1 = 0.0;
-			c2 = 1.0;
 			std::cout << "61" << std::endl;
 		}else{
 			c1 = 1.0;
-			c2 = 0.0;
 			std::cout << "62" << std::endl;
 		}
 	}
 	
-	F = (k*(Zs - z) +c*v)*c1 + m*g*c2;
+	F = (k*(Zs - z) -c*v)*c1;
 
 	//set value
 	WorkVec.PutCoef(1, F);
@@ -316,26 +313,25 @@ Contactlaw::AssJac(
 	doublereal g,Zs;
 	pSeabed->get(g,Zs);
 	doublereal A;
+	doublereal c1;
 	doublereal dF_dx;
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
 	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
-		A = 0;
+		dc1_dx = 0.0;
 		std::cout << "63" << std::endl;
 	} else {
-		if(v = 0){
-			//c1 = 0.0;
-			//C2 = 1.0;
-			A = 0;
+		if(v => 0){
+			dc1_dx = 0.0;
 			std::cout << "64" << std::endl;
 		}else{
-			//c1 = 1.0;
-			//C2 = 0.0;
-			A = c - dCoef*k;
+			dc1_dx = 1.0;
 			std::cout << "65" << std::endl;
 		}
 	}
+
+	A = (c - dCoef*k)*dc1_dx
 	
 
 	// set value
