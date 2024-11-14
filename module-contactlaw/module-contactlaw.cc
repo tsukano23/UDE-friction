@@ -331,7 +331,7 @@ Contactlaw::AssJac(
 		}
 	}
 
-	A = (c - dCoef*k)*dc1_dx;
+	A = (-c - dCoef*k)*dc1_dx;
 	
 
 	// set value
