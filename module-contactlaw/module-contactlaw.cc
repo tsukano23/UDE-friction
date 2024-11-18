@@ -323,7 +323,6 @@ Contactlaw::AssJac(
 	} else {
 		dc1_dx = 1.0;
 		std::cout << "Jac01" << std::endl;
-		}
 	}
 
 	A = (-c - dCoef*k)*dc1_dx;
