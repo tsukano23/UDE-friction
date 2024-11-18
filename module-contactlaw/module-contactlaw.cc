@@ -268,7 +268,7 @@ Contactlaw::AssRes(
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
 	doublereal v = XPrimeCurr(iPositionIndex+3);
-	doublereal delta = std::abs(z)
+	doublereal delta = std::abs(z);
 	if (z>0.0) {
 		c1 = 0.0;
 		std::cout << "Res00" << std::endl;
