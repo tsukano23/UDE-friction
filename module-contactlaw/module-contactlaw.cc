@@ -90,11 +90,14 @@ Contactlaw::Contactlaw (
 	std:: cout << "2" << std::endl;
 
 	// read Mass
+	/*
 	if (!HP.IsKeyWord("m")) {
 		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"m\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	m = HP.GetReal();
+	*/
+	
 
 	// read k
 	if (!HP.IsKeyWord("k")) {
@@ -265,20 +268,16 @@ Contactlaw::AssRes(
 
 	doublereal z = XCurr(iPositionIndex+3) - Zs;
 	doublereal v = XPrimeCurr(iPositionIndex+3);
+	doublereal delta = std::abs(z)
 	if (z>0.0) {
 		c1 = 0.0;
-		std::cout << "60" << std::endl;
+		std::cout << "Res00" << std::endl;
 	} else {
-		if(v >= 0){
-			c1 = 0.0;
-			std::cout << "61" << std::endl;
-		}else{
-			c1 = 1.0;
-			std::cout << "62" << std::endl;
-		}
+		c1 = 1.0;
+		std::cout << "Res01" << std::endl;
 	}
 	
-	F = (k*(Zs - z) -c*v)*c1;
+	F = (k*delta -c*v)*c1;
 
 	//set value
 	WorkVec.PutCoef(1, F);
@@ -320,14 +319,10 @@ Contactlaw::AssJac(
 	doublereal v = XPrimeCurr(iPositionIndex+3);
 	if (z>0.0) {
 		dc1_dx = 0.0;
-		std::cout << "63" << std::endl;
+		std::cout << "Jac00" << std::endl;
 	} else {
-		if(v >= 0){
-			dc1_dx = 0.0;
-			std::cout << "64" << std::endl;
-		}else{
-			dc1_dx = 1.0;
-			std::cout << "65" << std::endl;
+		dc1_dx = 1.0;
+		std::cout << "Jac01" << std::endl;
 		}
 	}
 
