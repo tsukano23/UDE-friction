@@ -47,7 +47,9 @@
 
 #include "mbconfig.h"
 #include "seabedprop.h"
+#include "coulombfriction.h"
 
+/*seabedprop-----------------------------------------------*/
 seabedprop::seabedprop(void)
 {
     NO_OP;
@@ -72,6 +74,49 @@ seabedprop::get(doublereal& pg, doublereal& pz) const
     pz = z_seabed;
 }
 
+/*coulombfriction------------------------------------------*/
+
+coulombfriction::coulombfriction(void)
+{
+    NO_OP;
+}
+
+coulombfriction::~coulombfriction(void)
+{
+    NO_OP;
+}
+
+void
+coulombfriction::setValue(
+    doublereal& pnu_d_axial,
+    doublereal& pnu_s_axial,
+    doublereal& pnu_d_lateral,
+    doublereal& pnu_s_lateral    
+    ) const
+{
+    nu_d_axial      = pnu_d_axial;
+    nu_s_axial      = pnu_s_axial;
+    nu_d_lateral    = pnu_d_lateral;
+    nu_s_lateral    = pnu_s_lateral;
+}
+
+void
+coulombfriction::get(
+    doublereal& pnu_d_axial,
+    doublereal& pnu_s_axial,
+    doublereal& pnu_d_lateral,
+    doublereal& pnu_s_lateral    
+    ) const
+{
+    pnu_d_axial      = nu_d_axial;
+    pnu_s_axial      = nu_s_axial;
+    pnu_d_lateral    = nu_d_lateral;
+    pnu_s_lateral    = nu_s_lateral;
+}
+
+
+
+/*seabedpropowner------------------------------------------*/
 seabedpropowner::seabedpropowner(void)
 {
     NO_OP;
@@ -82,6 +127,7 @@ seabedpropowner::~seabedpropowner(void)
     NO_OP;   
 }
 
+//incooporate-seabedprop
 void
 seabedpropowner::setSeabedprop(doublereal& g, doublereal& z)
 {
@@ -92,4 +138,37 @@ void
 seabedpropowner::get(doublereal& g, doublereal& z) const
 {
     pSeabedprop.get(g, z);
+}
+
+//incooporate-coulombfriction
+void
+seabedpropowner::setCoulombfriction(
+    doublereal& nu_d_axial,
+    doublereal& nu_s_axial,
+    doublereal& nu_d_lateral,
+    doublereal& nu_s_lateral
+    )
+{
+    pCoulombfriction.setValue(
+    nu_d_axial,
+    nu_s_axial,
+    nu_d_lateral,
+    nu_s_lateral
+    );
+}
+
+void
+seabedpropowner::get(
+    doublereal& nu_d_axial,
+    doublereal& nu_s_axial,
+    doublereal& nu_d_lateral,
+    doublereal& nu_s_lateral
+    ) const
+{
+    pCoulombfriction.get(
+    nu_d_axial,
+    nu_s_axial,
+    nu_d_lateral,
+    nu_s_lateral
+    );
 }

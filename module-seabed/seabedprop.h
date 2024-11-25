@@ -38,6 +38,7 @@
 
 #include "dataman.h"
 
+/*seabedprop--------------------------------------------------------------*/
 #ifndef SEABEDPROP_H
 #define SEABEDPROP_H
 
@@ -53,22 +54,65 @@ public:
     virtual void setValue(doublereal& pg, doublereal& pz);
     virtual void get(doublereal& pg, doublereal& pz) const;
 };
-
 #endif // SEABEDPROP_H
 
+/*coulombfriction---------------------------------------------------------*/
+#ifndef COULOMBFRICTION_H
+#define COULOMBFRICTION_H
+
+class coulombfriction
+{
+private:
+    doublereal nu_d_axial;
+    doublereal nu_s_axial;
+    doublereal nu_d_lateral;
+    doublereal nu_s_lateral;
+public:
+    coulombfriction(void);
+    virtual ~coulombfriction(void);
+        
+    virtual void setValue(
+    doublereal& pnu_d_axial,
+    doublereal& pnu_s_axial,
+    doublereal& pnu_d_lateral,
+    doublereal& pnu_s_lateral    
+    );
+    virtual void get(
+    doublereal& pnu_d_axial,
+    doublereal& pnu_s_axial,
+    doublereal& pnu_d_lateral,
+    doublereal& pnu_s_lateral 
+    ) const;
+};
+#endif // COULOMBFRICTION_H
+
+/*seabedpropowner---------------------------------------------------------*/
 #ifndef SEABEDPROPOWBER_H
 #define SEABEDPROPOWBER_H
 
 class seabedpropowner
 {
 protected:
-    seabedprop pSeabedprop; 
+    seabedprop pSeabedprop;
+    coulombfriction pCoulombfriction;
 public:
     seabedpropowner(void);
     virtual ~seabedpropowner(void);
 
     virtual void setSeabedprop(doublereal& g, doublereal& z);
     virtual void get(doublereal& g, doublereal& z) const;
+    virtual void setValue(
+    doublereal& nu_d_axial,
+    doublereal& nu_s_axial,
+    doublereal& nu_d_lateral,
+    doublereal& nu_s_lateral    
+    );
+    virtual void get(
+    doublereal& nu_d_axial,
+    doublereal& nu_s_axial,
+    doublereal& nu_d_lateral,
+    doublereal& nu_s_lateral 
+    ) const;
 };
 
 #endif // SEABEDPROPOWBER_H
