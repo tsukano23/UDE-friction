@@ -101,7 +101,7 @@ public:
 
     virtual void setSeabedprop(doublereal& g, doublereal& z);
     virtual void get(doublereal& g, doublereal& z) const;
-    virtual void setValue(
+    virtual void setCoulombfriction(
     doublereal& nu_d_axial,
     doublereal& nu_s_axial,
     doublereal& nu_d_lateral,

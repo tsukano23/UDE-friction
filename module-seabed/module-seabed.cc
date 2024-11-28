@@ -82,6 +82,16 @@ Seabed::Seabed (
 	doublereal g = HP.GetReal();
 	doublereal z = HP.GetReal();
 	pSeabedprop.setValue(g, z);
+	doublereal nu_d_axial	= HP.GetReal();
+    doublereal nu_s_axial	= HP.GetReal();
+    doublereal nu_d_lateral	= HP.GetReal();
+    doublereal nu_s_lateral	= HP.GetReal();
+	pCoulombfriction.setValue(
+		nu_d_axial,
+		nu_s_axial,
+		nu_d_lateral,
+		nu_s_lateral
+	);
 
 	//output flag
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
