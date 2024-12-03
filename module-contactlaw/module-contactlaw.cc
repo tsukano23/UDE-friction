@@ -287,7 +287,7 @@ Contactlaw::AssRes(
 	doublereal d2;
 	doublereal e1;
 	doublereal e2;
-	Vec3 z 				= Vec3(0.0, 0.0, 1.0);
+	Vec3 z_global 				= Vec3(0.0, 0.0, 1.0);
 
 	doublereal F;
     doublereal nu_axial; 
@@ -341,7 +341,7 @@ Contactlaw::AssRes(
 			e2 = 1.0;
         std::cout << "Res03" << std::endl;           
         }
-        else (vx != 0.0 && vy != 0.0){
+        else if (vx != 0.0 && vy != 0.0){
 			//nu_axial    = nu1d
 			d1 = 1.0;
 			d2 = 0.0; 
@@ -360,9 +360,8 @@ Contactlaw::AssRes(
 	nu_lateral 	= e1*nu2d + e2*nu2s;
 	
 	//摩擦力の絶対値の計算
-	doublereal F_abs 		= std::abs(F);
-	F_friction_axial_abs    = nu_axial*F_abs
-    F_friction_lateral_abs  = nu_lateral*F_abs
+	F_friction_axial_abs    = nu_axial*F;
+    F_friction_lateral_abs  = nu_lateral*F;
 
 	//摩擦力のベクトル計算
 
@@ -370,7 +369,7 @@ Contactlaw::AssRes(
 	pexv.unitVec_axial(unit_axial,r1,r2);
 	
 	///x軸と係留軸方向の外積計算
-	Vec3 v_lateral 		= pexv.cross(z,unit_axial);
+	Vec3 v_lateral 		= pexv.cross(z_global,unit_axial);
 	
 	///係留横方向の単位ベクトル計算
 	pexv.unitVec_lateral(unit_lateral,v_lateral);
@@ -382,14 +381,16 @@ Contactlaw::AssRes(
 	pff.f_friction_lateral(F_friction_lateral, F_friction_lateral_abs, unit_lateral);
 
 	//各成分の摩擦力、外力を成分ごとに足し合わせ
-	doublereal F_x = F_friction_axial.dGet(1) + F_friction_lateral.dGet(1) + F.dGet(1);
-	doublereal F_y = F_friction_axial.dGet(2) + F_friction_lateral.dGet(2) + F.dGet(2);
-	doublereal F_z = F_friction_axial.dGet(3) + F_friction_lateral.dGet(3) + F.dGet(3);
+	doublereal F_x = F_friction_axial.dGet(1) + F_friction_lateral.dGet(1) ;
+	doublereal F_y = F_friction_axial.dGet(2) + F_friction_lateral.dGet(2) ;
+	doublereal F_z = F_friction_axial.dGet(3) + F_friction_lateral.dGet(3) + F;
+
+	Vec3 F_integration = Vec3(F_x, F_y, F_z);
 
 	//WorkVecに代入
-	WorkVec.Put(1, F_x);
-	WorkVec.Put(2, F_y);
-	WorkVec.Put(3, F_z);
+	WorkVec.Put(1, F_integration);
+	//WorkVec.Put(2, F_y);
+	//WorkVec.Put(3, F_z);
 
 	return WorkVec;
 	std ::cout << "15" << std::endl;
