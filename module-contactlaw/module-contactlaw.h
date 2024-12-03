@@ -51,11 +51,12 @@ private:
 	 * Private Member Variables
 	 *===================================================================*/
 	//other private member
-	const StructNode *pNode;
-	const Seabed *pSeabed;
-	doublereal m; 
+	const StructNode *pNode1;
+	const StructNode *pNode2;
+	const Seabed *pSeabed; 
 	doublereal k;
 	doublereal c;
+
 
 public:
 	/*===================================================================

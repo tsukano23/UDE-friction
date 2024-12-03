@@ -71,7 +71,9 @@ Contactlaw::Contactlaw (
 			"- Note: \n"
 			"\ttest\n"
 			"- Usage: \n"
-			"\tContactlaw;\n"
+			"\tContactlaw,\n"
+			"\t<node_label_1>,\n"
+			"\t<node_label_2>;\n"
 			<< std::endl);
 		if (!HP.IsArg()) {
 			throw NoErr(MBDYN_EXCEPT_ARGS);
@@ -80,8 +82,11 @@ Contactlaw::Contactlaw (
 
 	std:: cout << "1" << std::endl;
 
-	// read node
-	pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	// read node1
+	pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+	// read node2
+	pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 	// read seabed object
 	unsigned int uElemLabel = (unsigned int)HP.GetInt();
@@ -120,7 +125,8 @@ Contactlaw::Contactlaw (
 	//export log file
 	pDM->GetLogFile()
 		<< "Contactlaw: " << uLabel
-		<< " " << pNode->GetLabel()
+		<< " " << pNode1->GetLabel()
+		<< " " << pNode2->GetLabel()
 		<< " " << pSeabed->GetLabel()
 		<< std::endl;
 
@@ -235,8 +241,8 @@ Contactlaw::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) con
 void
 Contactlaw::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = 1;
-	*piNumCols = 1;	
+	*piNumRows = 3;
+	*piNumCols = 3;	
 	//std ::cout << "14" << std::endl;
 }
 
@@ -249,38 +255,93 @@ Contactlaw::AssRes(
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	//obtain vector dimension
+	/*//obtain vector dimension
 	integer iNumRows;
 	integer iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
+	*/
 
 	//set index from global state vector
-	const integer iPositionIndex = pNode->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode->iGetFirstMomentumIndex();
+	//node1 current data
+	const integer iPositionIndex = pNode1->iGetFirstPositionIndex();
+	const integer iMomentumIndex = pNode1->iGetFirstMomentumIndex();
 	WorkVec.PutRowIndex(1, iMomentumIndex+3);
+	const Vec3& r1 = pNode1->GetXCurr();
 
-	//calculate forces
+	//node2 current data
+	const integer iPositionIndex = pNode2->iGetFirstPositionIndex();
+	const integer iMomentumIndex = pNode2->iGetFirstMomentumIndex();
+	WorkVec.PutRowIndex(1, iMomentumIndex+3);
+	const Vec3& r2 = pNode2->GetXCurr();
+
+	//configuring workvec
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+	}
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt+3, iFirstMomentumIndex2+iCnt);
+	}
+
+	/*calculate refrecionforces------------------------------------*/
 	doublereal g,Zs;
 	pSeabed->get(g, Zs);
 	doublereal c1;
 	doublereal F;
+    doublereal F_friction_axial;
+    doublereal F_friction_lateral;
+    doublereal nu_axial; 
+    doublereal nu_lateral;  
+    
 
-	doublereal z = XCurr(iPositionIndex+3) - Zs;
-	doublereal v = XPrimeCurr(iPositionIndex+3);
+	doublereal z    = XCurr(iPositionIndex+3) - Zs;
+    doublereal vx   = XPrimeCurr(iPositionIndex+1);
+    doublereal vy   = XPrimeCurr(iPositionIndex+2);
+	doublereal vz   = XPrimeCurr(iPositionIndex+3);
 	doublereal delta = std::abs(z);
 	if (z>0.0) {
 		c1 = 0.0;
 		std::cout << "Res00" << std::endl;
+/*ここからが摩擦力計算の該当箇所*/
 	} else {
 		c1 = 1.0;
-		std::cout << "Res01" << std::endl;
+        if(vx == 0.0 && vy == 0.0){
+            nu_axial    = nu1s; 
+            nu_lateral  = nu2s;
+        std::cout << "Res01" << std::endl;    
+        }
+        else if (vx == 0.0 && vy != 0.0){
+            nu_axial    = nu1s;
+            nu_lateral  = nu2d;
+        std::cout << "Res02" << std::endl;         
+        }
+        else if (vx != 0.0 && vy == 0.0){
+            nu_axial    = nu1d; 
+            nu_lateral  = nu2s;
+        std::cout << "Res03" << std::endl;           
+        }
+        else (vx != 0.0 && vy != 0.0){
+            nu_axial    = nu1d;
+            nu_lateral  = nu2d;
+        std::cout << "Res04" << std::endl;           
+        }
+		
 	}
 	
-	F = (k*delta -c*v)*c1;
+	F                   = (k*delta -c*vz)*c1;
+    F_friction_axial    = nu_axial*F 
+    F_friction_lateral  = nu_lateral*F 
 
-	//set value
-	WorkVec.PutCoef(1, F);
+	//set value=============修正必要
+	//WorkVecの方程式を記述して確認
+	WorkVec.Put(1, F_friction_axial);
+	WorkVec.Put(2, F_friction_lateral);
+	WorkVec.Put(3, F);
+
 	return WorkVec;
 	std ::cout << "15" << std::endl;
 }

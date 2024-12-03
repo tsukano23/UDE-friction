@@ -36,9 +36,9 @@
  * Motooka 744, Nishi-ku, Fukuoka 819-0395, Fukuoka, Japan 
  * -----------------------------------------------------------------------*/
 
+#include <mbconfig.h>
 #include "dataman.h"
 
-/*seabedprop--------------------------------------------------------------*/
 #ifndef SEABEDPROP_H
 #define SEABEDPROP_H
 
@@ -47,72 +47,45 @@ class seabedprop
 private:
     doublereal g;
     doublereal z_seabed;
+    doublereal nu1d;
+    doublereal nu1s;
+    doublereal nu2d;
+    doublereal nu2s;
 public:
     seabedprop(void);
     virtual ~seabedprop(void);
 
-    virtual void setValue(doublereal& pg, doublereal& pz);
-    virtual void get(doublereal& pg, doublereal& pz) const;
+    virtual void setValue(
+        doublereal& pg, doublereal& pz,
+        doublereal& pnu1d, doublereal& pnu1s, doublereal& pnu2d, doublereal& pnu2s
+        );
+    virtual void get(
+        doublereal& pg, doublereal& pz,
+        doublereal& pnu1d, doublereal& pnu1s, doublereal& pnu2d, doublereal& pnu2s
+        ) const;
 };
+
 #endif // SEABEDPROP_H
 
-/*coulombfriction---------------------------------------------------------*/
-#ifndef COULOMBFRICTION_H
-#define COULOMBFRICTION_H
-
-class coulombfriction
-{
-private:
-    doublereal nu_d_axial;
-    doublereal nu_s_axial;
-    doublereal nu_d_lateral;
-    doublereal nu_s_lateral;
-public:
-    coulombfriction(void);
-    virtual ~coulombfriction(void);
-        
-    virtual void setValue(
-    doublereal& pnu_d_axial,
-    doublereal& pnu_s_axial,
-    doublereal& pnu_d_lateral,
-    doublereal& pnu_s_lateral    
-    );
-    virtual void get(
-    doublereal& pnu_d_axial,
-    doublereal& pnu_s_axial,
-    doublereal& pnu_d_lateral,
-    doublereal& pnu_s_lateral 
-    ) const;
-};
-#endif // COULOMBFRICTION_H
-
-/*seabedpropowner---------------------------------------------------------*/
 #ifndef SEABEDPROPOWBER_H
 #define SEABEDPROPOWBER_H
 
 class seabedpropowner
 {
 protected:
-    seabedprop pSeabedprop;
-    coulombfriction pCoulombfriction;
+    seabedprop pSeabedprop; 
 public:
     seabedpropowner(void);
     virtual ~seabedpropowner(void);
 
-    virtual void setSeabedprop(doublereal& g, doublereal& z);
-    virtual void get(doublereal& g, doublereal& z) const;
-    virtual void setCoulombfriction(
-    doublereal& nu_d_axial,
-    doublereal& nu_s_axial,
-    doublereal& nu_d_lateral,
-    doublereal& nu_s_lateral    
-    );
+    virtual void setSeabedprop(
+        doublereal& g, doublereal& z,
+        doublereal& nu1d, doublereal& nu1s, doublereal& nu2d, doublereal& nu2s
+        );
     virtual void get(
-    doublereal& nu_d_axial,
-    doublereal& nu_s_axial,
-    doublereal& nu_d_lateral,
-    doublereal& nu_s_lateral 
-    ) const;
+        doublereal& g, doublereal& z,
+        doublereal& nu1d, doublereal& nu1s, doublereal& nu2d, doublereal& nu2s
+        )const;
 };
 
 #endif // SEABEDPROPOWBER_H
