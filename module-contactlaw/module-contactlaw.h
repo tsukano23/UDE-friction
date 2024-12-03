@@ -42,6 +42,8 @@
 #include "dataman.h"
 #include "userelem.h"
 #include "module-seabed.h"
+#include "exchangevector.h"
+#include "frictionforce.h"
 
 class Contactlaw
 : virtual public Elem, public UserDefinedElem 
@@ -53,9 +55,13 @@ private:
 	//other private member
 	const StructNode *pNode1;
 	const StructNode *pNode2;
-	const Seabed *pSeabed; 
-	doublereal k;
-	doublereal c;
+	const Seabed 			*pSeabed;
+	const frictionforce 	pff;
+	const exchangevector	pexv; 
+	doublereal 				k;
+	doublereal 				c;
+private:
+	
 
 
 public:

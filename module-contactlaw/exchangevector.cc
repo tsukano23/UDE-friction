@@ -47,12 +47,11 @@ exchangevector::cross(Vec3& a, Vec3& b) const
 }
 
 /*--係留軸方向-----------------------------------*/
-Vec3
-exchangevector::unitVec_axial(const Vec3& r1, const Vec3& r2) const
+void
+exchangevector::unitVec_axial(Vec3& unitaxial, const Vec3& r1, const Vec3& r2) const
 {
 	Vec3 axial 		= r2-r1;
-	Vec3 unitaxial 	= axial/axial.Norm();
-	return unitaxial;
+	unitaxial 		= axial/axial.Norm();
 }
 
 /*--係留軸に対して垂直（横）方向-----------------------------------
@@ -60,17 +59,12 @@ exchangevector::unitVec_axial(const Vec3& r1, const Vec3& r2) const
 +グローバル座標を座標変換することによって求める
 */
 
-Vec3
-exchangevector::unitVec_lateral(const Vec3& r1, const Vec3& r2) const
+void
+exchangevector::unitVec_lateral(Vec3& unitlateral, Vec3& v_lateral) const
 {
-	Vec3 z 				= Vec3(0.0, 0.0, 1.0);
-	Vec3 v_axial		= unitVec_axial(Vec3& r1, Vec3& r2);
-	Vec3 lateral 		= cross(z,v_axial);
-	Vec3 unitlateral 	= lateral/lateral.Norm();
-	return unitlateral;
+	unitlateral 		= v_lateral/v_lateral.Norm();
 }
 
 
 
 /* ------------------------------- exchangevector end ----------------------------------------*/
-

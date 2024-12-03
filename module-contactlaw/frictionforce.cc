@@ -22,37 +22,35 @@ frictionforce::~frictionforce(void)
 }
 
 /*--係留軸方向の摩擦力-----------------------------------*/
-Vec3
-frictionforce::f_friction_axial(doublereal& F, Vec3& v_axial)const
+void
+frictionforce::f_friction_axial(Vec3& friction_axial, const doublereal& F, const Vec3& v_axial)const
 {
 	doublereal v_axial_x 	= a.dGet(1);
 	doublereal v_axial_y 	= a.dGet(2);
 	doublereal v_axial_z 	= a.dGet(3);
 
 	
-	Vec3 friction_axial = Vec3(
-		F*v_axial_x,
-		F*v_axial_y,
-		F*v_axial_z
-		);
-	return friction_axial;
+	friction_axial = Vec3(
+			F*v_axial_x,
+			F*v_axial_y,
+			F*v_axial_z
+			);
 }
 
 /*--係留軸横方向の摩擦力-----------------------------------*/
-Vec3
-frictionforce::f_friction_lateral(doublereal& F, Vec3& v_lateral)const
+void
+frictionforce::f_friction_lateral(Vec3 friction_lateral, const doublereal& F, const Vec3& v_lateral)const
 {
 	doublereal v_lateral_x 	= a.dGet(1);
 	doublereal v_lateral_y 	= a.dGet(2);
 	doublereal v_lateral_z 	= a.dGet(3);
 
 	
-	Vec3 friction_lateral = Vec3(
+	friction_lateral = Vec3(
 		F*v_lateral_x,
 		F*v_lateral_y,
 		F*v_lateral_z
 		);
-	return friction_lateral;
 }
 
 /* ------------------------------- frictionforce end ----------------------------------------*/

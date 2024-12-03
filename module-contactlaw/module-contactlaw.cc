@@ -47,6 +47,8 @@
 #include <limits>
 
 #include "module-contactlaw.h"
+#include "exchangevector.h"
+#include "frictionforce.h"
 
 
 /* ----------------------------- contactlaw start --------------------------------------*/
@@ -255,24 +257,14 @@ Contactlaw::AssRes(
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	/*//obtain vector dimension
-	integer iNumRows;
-	integer iNumCols;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-	*/
-
-	//set index from global state vector
 	//node1 current data
-	const integer iPositionIndex = pNode1->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode1->iGetFirstMomentumIndex();
-	WorkVec.PutRowIndex(1, iMomentumIndex+3);
+	const integer iPositionIndex1 = pNode1->iGetFirstMomentumIndex();
+	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	const Vec3& r1 = pNode1->GetXCurr();
 
 	//node2 current data
-	const integer iPositionIndex = pNode2->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode2->iGetFirstMomentumIndex();
-	WorkVec.PutRowIndex(1, iMomentumIndex+3);
+	const integer iPositionIndex2 = pNode2->iGetFirstMomentumIndex();
+	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 	const Vec3& r2 = pNode2->GetXCurr();
 
 	//configuring workvec
@@ -281,66 +273,123 @@ Contactlaw::AssRes(
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 	for(int iCnt = 1; iCnt <=3; iCnt++){
-		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1+iCnt);
+		WorkVec.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
 	}
 	for(int iCnt = 1; iCnt <=3; iCnt++){
-		WorkVec.PutRowIndex(iCnt+3, iFirstMomentumIndex2+iCnt);
+		WorkVec.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
 	}
 
 	/*calculate refrecionforces------------------------------------*/
-	doublereal g,Zs;
-	pSeabed->get(g, Zs);
+	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
+	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
 	doublereal c1;
+	doublereal d1;
+	doublereal d2;
+	doublereal e1;
+	doublereal e2;
+	Vec3 z 				= Vec3(0.0, 0.0, 1.0);
+
 	doublereal F;
-    doublereal F_friction_axial;
-    doublereal F_friction_lateral;
     doublereal nu_axial; 
     doublereal nu_lateral;  
+	
+	doublereal F_friction_axial_abs;
+	doublereal F_friction_lateral_abs;
+	Vec3 unit_axial 			= Vec3(0.0,0.0,0.0);
+    Vec3 unit_lateral 			= Vec3(0.0,0.0,0.0);
+	Vec3 F_friction_axial 		= Vec3(0.0,0.0,0.0);
+    Vec3 F_friction_lateral 	= Vec3(0.0,0.0,0.0);
     
-
-	doublereal z    = XCurr(iPositionIndex+3) - Zs;
-    doublereal vx   = XPrimeCurr(iPositionIndex+1);
-    doublereal vy   = XPrimeCurr(iPositionIndex+2);
-	doublereal vz   = XPrimeCurr(iPositionIndex+3);
+	doublereal z    = XCurr(iPositionIndex1+3) - Zs;
+    doublereal vx   = XPrimeCurr(iPositionIndex1+1);
+    doublereal vy   = XPrimeCurr(iPositionIndex1+2);
+	doublereal vz   = XPrimeCurr(iPositionIndex1+3);
 	doublereal delta = std::abs(z);
+
+/*反力計算*/
 	if (z>0.0) {
 		c1 = 0.0;
 		std::cout << "Res00" << std::endl;
-/*ここからが摩擦力計算の該当箇所*/
+/*摩擦力計算*/
+/*ここからが摩擦力係数の判別*/
 	} else {
 		c1 = 1.0;
         if(vx == 0.0 && vy == 0.0){
-            nu_axial    = nu1s; 
-            nu_lateral  = nu2s;
+            //nu_axial    = nu1s
+			d1 = 0.0;
+			d2 = 1.0; 
+            //nu_lateral  = nu2s
+			e1 = 0.0;
+			e2 = 1.0;
         std::cout << "Res01" << std::endl;    
         }
         else if (vx == 0.0 && vy != 0.0){
-            nu_axial    = nu1s;
-            nu_lateral  = nu2d;
+            //nu_axial    = nu1s
+			d1 = 0.0;
+			d2 = 1.0; 
+            //nu_lateral  = nu2d
+			e1 = 1.0;
+			e2 = 0.0;
         std::cout << "Res02" << std::endl;         
         }
         else if (vx != 0.0 && vy == 0.0){
-            nu_axial    = nu1d; 
-            nu_lateral  = nu2s;
+			//nu_axial    = nu1d
+			d1 = 1.0;
+			d2 = 0.0; 
+            //nu_lateral  = nu2s
+			e1 = 0.0;
+			e2 = 1.0;
         std::cout << "Res03" << std::endl;           
         }
         else (vx != 0.0 && vy != 0.0){
-            nu_axial    = nu1d;
-            nu_lateral  = nu2d;
+			//nu_axial    = nu1d
+			d1 = 1.0;
+			d2 = 0.0; 
+            //nu_lateral  = nu2d
+			e1 = 1.0;
+			e2 = 0.0;
         std::cout << "Res04" << std::endl;           
         }
 		
 	}
-	
-	F                   = (k*delta -c*vz)*c1;
-    F_friction_axial    = nu_axial*F 
-    F_friction_lateral  = nu_lateral*F 
+	//弾性床からの反力計算
+	F           = (k*delta -c*vz)*c1;
 
-	//set value=============修正必要
-	//WorkVecの方程式を記述して確認
-	WorkVec.Put(1, F_friction_axial);
-	WorkVec.Put(2, F_friction_lateral);
-	WorkVec.Put(3, F);
+	//摩擦係数の決定
+    nu_axial 	= d1*nu1d + d2*nu1s;
+	nu_lateral 	= e1*nu2d + e2*nu2s;
+	
+	//摩擦力の絶対値の計算
+	doublereal F_abs 		= std::abs(F);
+	F_friction_axial_abs    = nu_axial*F_abs
+    F_friction_lateral_abs  = nu_lateral*F_abs
+
+	//摩擦力のベクトル計算
+
+	///係留軸方向の単位ベクトル計算
+	pexv.unitVec_axial(unit_axial,r1,r2);
+	
+	///x軸と係留軸方向の外積計算
+	Vec3 v_lateral 		= pexv.cross(z,unit_axial);
+	
+	///係留横方向の単位ベクトル計算
+	pexv.unitVec_lateral(unit_lateral,v_lateral);
+	
+	//摩擦ベクトルの計算
+	///係留軸方向
+	pff.f_friction_axial(F_friction_axial, F_friction_axial_abs, unit_axial);
+	///係留軸横方向
+	pff.f_friction_lateral(F_friction_lateral, F_friction_lateral_abs, unit_lateral);
+
+	//各成分の摩擦力、外力を成分ごとに足し合わせ
+	doublereal F_x = F_friction_axial.dGet(1) + F_friction_lateral.dGet(1) + F.dGet(1);
+	doublereal F_y = F_friction_axial.dGet(2) + F_friction_lateral.dGet(2) + F.dGet(2);
+	doublereal F_z = F_friction_axial.dGet(3) + F_friction_lateral.dGet(3) + F.dGet(3);
+
+	//WorkVecに代入
+	WorkVec.Put(1, F_x);
+	WorkVec.Put(2, F_y);
+	WorkVec.Put(3, F_z);
 
 	return WorkVec;
 	std ::cout << "15" << std::endl;
@@ -357,21 +406,34 @@ Contactlaw::AssJac(
 {
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
+	//node1 current data
+	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
+	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
+	const Vec3& r1 = pNode1->GetXCurr();
+
+	//node2 current data
+	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
+	const Vec3& r2 = pNode2->GetXCurr();
+
 	//obtain vector dimension
 	integer iNumRows;
 	integer iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
 
-	//set index from global matrix
-  	const integer iPositionIndex = pNode->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode->iGetFirstMomentumIndex();
-	WM.PutRowIndex(1, iMomentumIndex+3);
-	WM.PutColIndex(1, iPositionIndex+3);
+	for(int iCnt = 1; iCnt<=3; iCnt++){
+		WM.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
+		WM.PutColIndex(iCnt, iPositionIndex1+iCnt);
+	}	
+	for(int iCnt = 1; iCnt<=3; iCnt++){
+		WM.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
+		WM.PutColIndex(iCnt+3, iPositionIndex2+iCnt);
+	}
 
 	//calculate forces
-	doublereal g,Zs;
-	pSeabed->get(g,Zs);
+	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
+	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
 	doublereal A;
 	doublereal dc1_dx;
 	doublereal dF_dx;
@@ -390,6 +452,7 @@ Contactlaw::AssJac(
 	
 
 	// set value
+	//どう計算すればよいのか相談
 	WM.PutCoef( 1,  1, A );
 	return WorkMat;
 	std ::cout << "16" << std::endl;
