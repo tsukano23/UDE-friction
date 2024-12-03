@@ -439,8 +439,8 @@ Contactlaw::AssJac(
 	doublereal dc1_dx;
 	doublereal dF_dx;
 
-	doublereal z = XCurr(iPositionIndex+3) - Zs;
-	doublereal v = XPrimeCurr(iPositionIndex+3);
+	doublereal z = XCurr(iPositionIndex1+3) - Zs;
+	doublereal v = XPrimeCurr(iPositionIndex1+3);
 	if (z>0.0) {
 		dc1_dx = 0.0;
 		std::cout << "Jac00" << std::endl;
