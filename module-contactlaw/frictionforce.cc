@@ -25,9 +25,9 @@ frictionforce::~frictionforce(void)
 void
 frictionforce::f_friction_axial(Vec3& friction_axial, const doublereal& F, const Vec3& v_axial)const
 {
-	doublereal v_axial_x 	= a.dGet(1);
-	doublereal v_axial_y 	= a.dGet(2);
-	doublereal v_axial_z 	= a.dGet(3);
+	doublereal v_axial_x 	= v_axial.dGet(1);
+	doublereal v_axial_y 	= v_axial.dGet(2);
+	doublereal v_axial_z 	= v_axial.dGet(3);
 
 	
 	friction_axial = Vec3(
@@ -41,9 +41,9 @@ frictionforce::f_friction_axial(Vec3& friction_axial, const doublereal& F, const
 void
 frictionforce::f_friction_lateral(Vec3 friction_lateral, const doublereal& F, const Vec3& v_lateral)const
 {
-	doublereal v_lateral_x 	= a.dGet(1);
-	doublereal v_lateral_y 	= a.dGet(2);
-	doublereal v_lateral_z 	= a.dGet(3);
+	doublereal v_lateral_x 	= v_lateral.dGet(1);
+	doublereal v_lateral_y 	= v_lateral.dGet(2);
+	doublereal v_lateral_z 	= v_lateral.dGet(3);
 
 	
 	friction_lateral = Vec3(
