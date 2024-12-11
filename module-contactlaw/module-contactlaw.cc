@@ -265,10 +265,10 @@ Contactlaw::AssRes(
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 
-	const Vec3& r1 = pNode1->GetXCurr();
-	const Vec3& v1 = pNode1->GetXPPCurr();
-	const Vec3& r2 = pNode2->GetXCurr();
-	const Vec3& v2 = pNode2->GetXPPCurr();
+	const Vec3 r1 = pNode1->GetXCurr();
+	const Vec3 v1 = pNode1->GetXPPCurr();
+	const Vec3 r2 = pNode2->GetXCurr();
+	const Vec3 v2 = pNode2->GetXPPCurr();
 	
 	//configuring workvec
 	integer iNumRows;
@@ -329,6 +329,12 @@ Contactlaw::AssRes(
 	
 	doublereal F1 = (k*delta_1 -c*vz_1)*b1;
 
+	Vec3 F1_v = Vec3(
+		0.,
+		0.,
+		F1
+	);
+
 	if (z_2>0.0) {
 		c1 = 0.0;
 		std::cout << "Res02" << std::endl;
@@ -339,11 +345,15 @@ Contactlaw::AssRes(
 	
 	doublereal F2 = (k*delta_2 -c*vz_2)*c1;
 
-
+	Vec3 F2_v = Vec3(
+		0.,
+		0.,
+		F2
+	); 
 
 	//WorkVecに代入
-	WorkVec.PutCoef(3, F1);
-	WorkVec.PutCoef(9, F2);
+	WorkVec.Put(1, F1_v);
+	WorkVec.Put(4, F2_v);
 	return WorkVec;
 	std ::cout << "15" << std::endl;
 }
