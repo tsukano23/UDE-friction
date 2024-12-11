@@ -261,6 +261,7 @@ Contactlaw::AssRes(
 	const integer iPositionIndex1 = pNode1->iGetFirstMomentumIndex();
 	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	const Vec3& r1 = pNode1->GetXCurr();
+	const Vec3& v1 = pNode1->GetXPPCurr();
 
 	//node2 current data
 	const integer iPositionIndex2 = pNode2->iGetFirstMomentumIndex();
@@ -299,12 +300,19 @@ Contactlaw::AssRes(
     Vec3 unit_lateral 			= Vec3(0.0,0.0,0.0);
 	Vec3 F_friction_axial 		= Vec3(0.0,0.0,0.0);
     Vec3 F_friction_lateral 	= Vec3(0.0,0.0,0.0);
-    
+
+	/*
 	doublereal z    = XCurr(iPositionIndex1+3) - Zs;
     doublereal vx   = XPrimeCurr(iPositionIndex1+1);
     doublereal vy   = XPrimeCurr(iPositionIndex1+2);
 	doublereal vz   = XPrimeCurr(iPositionIndex1+3);
+	*/
+    doublereal vx   = v1.dGet(1);
+    doublereal vy   = v1.dGet(2);
+	doublereal vz   = v1.dGet(3);
+	doublereal z    = r1.dGet(3) - Zs;
 	doublereal delta = std::abs(z);
+
 
 /*反力計算*/
 	if (z>0.0) {
