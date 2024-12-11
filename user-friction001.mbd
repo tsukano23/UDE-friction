@@ -60,10 +60,10 @@ begin: elements;
    #coin------------------------
    body: 11,
       1,
-      M, null, eye;
+      60., null, eye;
    body: 12,
       2,
-      M, null, eye;
+      60., null, eye;
    #module----------------------
    user defined: 21, seabed,
       g,
