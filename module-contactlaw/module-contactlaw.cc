@@ -432,6 +432,8 @@ Contactlaw::AssJac(
 		WM.PutColIndex(iCnt+3, iPositionIndex2+iCnt);
 	}
 
+	/*
+
 	//calculate forces
 	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
 	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
@@ -456,6 +458,10 @@ Contactlaw::AssJac(
 	//どう計算すればよいのか相談
 	WM.PutCoef( 1,  1, A );
 	return WorkMat;
+
+	*/
+	return WorkMat;
+
 	std ::cout << "16" << std::endl;
 }
 
