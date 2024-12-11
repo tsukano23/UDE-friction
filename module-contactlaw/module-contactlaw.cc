@@ -243,8 +243,8 @@ Contactlaw::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) con
 void
 Contactlaw::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = 3;
-	*piNumCols = 3;	
+	*piNumRows = 6;
+	*piNumCols = 6;	
 	//std ::cout << "14" << std::endl;
 }
 
@@ -258,15 +258,13 @@ Contactlaw::AssRes(
 	const VectorHandler& XPrimeCurr)
 {
 	//node1 current data
-	const integer iPositionIndex1 = pNode1->iGetFirstMomentumIndex();
+	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
 	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
-	const Vec3& r1 = pNode1->GetXCurr();
-
+	
 	//node2 current data
-	const integer iPositionIndex2 = pNode2->iGetFirstMomentumIndex();
+	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
-	const Vec3& r2 = pNode2->GetXCurr();
-
+	
 	//configuring workvec
 	integer iNumRows;
 	integer iNumCols;
@@ -279,17 +277,25 @@ Contactlaw::AssRes(
 		WorkVec.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
 	}
 
-	/*calculate refrecionforces------------------------------------*/
+	/*calculate refrecionforces_node1------------------------------------*/
+	/*
+	const Vec3& r1 = pNode1->GetXCurr();
+	const Vec3& v1 = pNode1->GetXPPCurr();
+	const Vec3& r2 = pNode2->GetXCurr();
+	const Vec3& v2 = pNode2->GetXPPCurr();
+	*/
+
 	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
 	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
+	doublereal b1;
 	doublereal c1;
+
 	doublereal d1;
 	doublereal d2;
 	doublereal e1;
 	doublereal e2;
 	Vec3 z_global 				= Vec3(0.0, 0.0, 1.0);
-
-	doublereal F;
+	
     doublereal nu_axial; 
     doublereal nu_lateral;  
 	
@@ -299,99 +305,46 @@ Contactlaw::AssRes(
     Vec3 unit_lateral 			= Vec3(0.0,0.0,0.0);
 	Vec3 F_friction_axial 		= Vec3(0.0,0.0,0.0);
     Vec3 F_friction_lateral 	= Vec3(0.0,0.0,0.0);
-    
-	doublereal z    = XCurr(iPositionIndex1+3) - Zs;
-    doublereal vx   = XPrimeCurr(iPositionIndex1+1);
-    doublereal vy   = XPrimeCurr(iPositionIndex1+2);
-	doublereal vz   = XPrimeCurr(iPositionIndex1+3);
-	doublereal delta = std::abs(z);
 
-/*反力計算*/
-	if (z>0.0) {
-		c1 = 0.0;
+	//node1
+    doublereal vx_1   = v1.dGet(1);
+    doublereal vy_1   = v1.dGet(2);
+	doublereal vz_1   = v1.dGet(3);
+	doublereal z_1    = r1.dGet(3) - Zs;
+	doublereal delta_1 = std::abs(z_1);
+	//node2
+	doublereal vx_2   = v2.dGet(1);
+    doublereal vy_2   = v2.dGet(2);
+	doublereal vz_2   = v2.dGet(3);
+	doublereal z_2    = r2.dGet(3) - Zs;
+	doublereal delta_2 = std::abs(z_2);
+
+
+	if (z_1>0.0) {
+		b1 = 0.0;
 		std::cout << "Res00" << std::endl;
-/*摩擦力計算*/
-/*ここからが摩擦力係数の判別*/
+	} else {
+		b1 = 1.0;
+		std::cout << "Res01" << std::endl;
+	}
+	
+	doublereal F1 = (k*delta_1 -c*vz_1)*b1;
+
+	if (z_2>0.0) {
+		c1 = 0.0;
+		std::cout << "Res02" << std::endl;
 	} else {
 		c1 = 1.0;
-        if(vx == 0.0 && vy == 0.0){
-            //nu_axial    = nu1s
-			d1 = 0.0;
-			d2 = 1.0; 
-            //nu_lateral  = nu2s
-			e1 = 0.0;
-			e2 = 1.0;
-        std::cout << "Res01" << std::endl;    
-        }
-        else if (vx == 0.0 && vy != 0.0){
-            //nu_axial    = nu1s
-			d1 = 0.0;
-			d2 = 1.0; 
-            //nu_lateral  = nu2d
-			e1 = 1.0;
-			e2 = 0.0;
-        std::cout << "Res02" << std::endl;         
-        }
-        else if (vx != 0.0 && vy == 0.0){
-			//nu_axial    = nu1d
-			d1 = 1.0;
-			d2 = 0.0; 
-            //nu_lateral  = nu2s
-			e1 = 0.0;
-			e2 = 1.0;
-        std::cout << "Res03" << std::endl;           
-        }
-        else if (vx != 0.0 && vy != 0.0){
-			//nu_axial    = nu1d
-			d1 = 1.0;
-			d2 = 0.0; 
-            //nu_lateral  = nu2d
-			e1 = 1.0;
-			e2 = 0.0;
-        std::cout << "Res04" << std::endl;           
-        }
-		
+		std::cout << "Res03" << std::endl;
 	}
-	//弾性床からの反力計算
-	F           = (k*delta -c*vz)*c1;
-
-	//摩擦係数の決定
-    nu_axial 	= d1*nu1d + d2*nu1s;
-	nu_lateral 	= e1*nu2d + e2*nu2s;
 	
-	//摩擦力の絶対値の計算
-	F_friction_axial_abs    = nu_axial*F;
-    F_friction_lateral_abs  = nu_lateral*F;
+	doublereal F2 = (k*delta_2 -c*vz_2)*c1;
 
-	//摩擦力のベクトル計算
 
-	///係留軸方向の単位ベクトル計算
-	pexv.unitVec_axial(unit_axial,r1,r2);
-	
-	///x軸と係留軸方向の外積計算
-	Vec3 v_lateral 		= pexv.cross(z_global,unit_axial);
-	
-	///係留横方向の単位ベクトル計算
-	pexv.unitVec_lateral(unit_lateral,v_lateral);
-	
-	//摩擦ベクトルの計算
-	///係留軸方向
-	pff.f_friction_axial(F_friction_axial, F_friction_axial_abs, unit_axial);
-	///係留軸横方向
-	pff.f_friction_lateral(F_friction_lateral, F_friction_lateral_abs, unit_lateral);
-
-	//各成分の摩擦力、外力を成分ごとに足し合わせ
-	doublereal F_x = F_friction_axial.dGet(1) + F_friction_lateral.dGet(1) ;
-	doublereal F_y = F_friction_axial.dGet(2) + F_friction_lateral.dGet(2) ;
-	doublereal F_z = F_friction_axial.dGet(3) + F_friction_lateral.dGet(3) + F;
-
-	Vec3 F_integration = Vec3(F_x, F_y, F_z);
 
 	//WorkVecに代入
-	WorkVec.Put(1, F_integration);
-	//WorkVec.Put(2, F_y);
-	//WorkVec.Put(3, F_z);
-
+	WorkVec.PutCoef(3, F1);
+	WorkVec.PutCoef(9, F2);
 	return WorkVec;
 	std ::cout << "15" << std::endl;
 }
@@ -408,14 +361,16 @@ Contactlaw::AssJac(
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	//node1 current data
-	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
+	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	const Vec3& r1 = pNode1->GetXCurr();
+	const Vec3& v1 = pNode1->GetXPPCurr();
 
 	//node2 current data
-	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
+	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 	const Vec3& r2 = pNode2->GetXCurr();
+	const Vec3& v2 = pNode2->GetXPPCurr();
 
 	//obtain vector dimension
 	integer iNumRows;
@@ -432,34 +387,51 @@ Contactlaw::AssJac(
 		WM.PutColIndex(iCnt+3, iPositionIndex2+iCnt);
 	}
 
-	/*
-
-	//calculate forces
 	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
 	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
-	doublereal A;
-	doublereal dc1_dx;
-	doublereal dF_dx;
 
-	doublereal z = XCurr(iPositionIndex1+3) - Zs;
-	doublereal v = XPrimeCurr(iPositionIndex1+3);
-	if (z>0.0) {
-		dc1_dx = 0.0;
+	
+	//node1
+	doublereal A1;
+    doublereal vx_1   = v1.dGet(1);
+    doublereal vy_1   = v1.dGet(2);
+	doublereal vz_1   = v1.dGet(3);
+	doublereal z_1    = r1.dGet(3) - Zs;
+	doublereal delta_1 = std::abs(z_1);
+	doublereal db1_dx;
+	//node2
+	doublereal A2;
+	doublereal vx_2   = v2.dGet(1);
+    doublereal vy_2   = v2.dGet(2);
+	doublereal vz_2   = v2.dGet(3);
+	doublereal z_2    = r2.dGet(3) - Zs;
+	doublereal delta_2 = std::abs(z_2);
+	doublereal dc1_dx;
+
+	//node1_jac
+	if (z_1>0.0) {
+		db1_dx = 0.0;
 		std::cout << "Jac00" << std::endl;
 	} else {
-		dc1_dx = 1.0;
+		db1_dx = 1.0;
 		std::cout << "Jac01" << std::endl;
 	}
 
-	A = (-c - dCoef*k)*dc1_dx;
-	
+	A1 = (-c - dCoef*k)*db1_dx;
 
-	// set value
-	//どう計算すればよいのか相談
-	WM.PutCoef( 1,  1, A );
-	return WorkMat;
+	//node2_jac
+	if (z_2>0.0) {
+		dc1_dx = 0.0;
+		std::cout << "Jac02" << std::endl;
+	} else {
+		dc1_dx = 1.0;
+		std::cout << "Jac03" << std::endl;
+	}
 
-	*/
+	A2 = (-c - dCoef*k)*dc1_dx;
+
+	WM.PutCoef( 1,  1, A1 );
+	WM.PutCoef( 3,  3, A2 );
 	return WorkMat;
 
 	std ::cout << "16" << std::endl;
