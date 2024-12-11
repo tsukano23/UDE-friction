@@ -264,6 +264,11 @@ Contactlaw::AssRes(
 	//node2 current data
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+
+	const Vec3& r1 = pNode1->GetXCurr();
+	const Vec3& v1 = pNode1->GetXPPCurr();
+	const Vec3& r2 = pNode2->GetXCurr();
+	const Vec3& v2 = pNode2->GetXPPCurr();
 	
 	//configuring workvec
 	integer iNumRows;
@@ -278,12 +283,6 @@ Contactlaw::AssRes(
 	}
 
 	/*calculate refrecionforces_node1------------------------------------*/
-	/*
-	const Vec3& r1 = pNode1->GetXCurr();
-	const Vec3& v1 = pNode1->GetXPPCurr();
-	const Vec3& r2 = pNode2->GetXCurr();
-	const Vec3& v2 = pNode2->GetXPPCurr();
-	*/
 
 	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
 	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
