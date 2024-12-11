@@ -265,10 +265,26 @@ Contactlaw::AssRes(
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 
-	const Vec3 r1 = pNode1->GetXCurr();
-	const Vec3 v1 = pNode1->GetXPPCurr();
-	const Vec3 r2 = pNode2->GetXCurr();
-	const Vec3 v2 = pNode2->GetXPPCurr();
+	const Vec3 r1 = Vec3(
+		XCurr(iPositionIndex1+1),
+		XCurr(iPositionIndex1+2),
+		XCurr(iPositionIndex1+3)
+	);
+	const Vec3 v1 = Vec3(
+		XPrimeCurr(iPositionIndex1+1),
+		XPrimeCurr(iPositionIndex1+2),
+		XPrimeCurr(iPositionIndex1+3)
+	);
+	const Vec3 r2 = Vec3(
+		XCurr(iPositionIndex2+1),
+		XCurr(iPositionIndex2+2),
+		XCurr(iPositionIndex2+3)
+	);
+	const Vec3 v2 = Vec3(
+		XPrimeCurr(iPositionIndex2+1),
+		XPrimeCurr(iPositionIndex2+2),
+		XPrimeCurr(iPositionIndex2+3)
+	);
 	
 	//configuring workvec
 	integer iNumRows;
