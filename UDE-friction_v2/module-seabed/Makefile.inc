@@ -1,1 +1,0 @@
-MODULE_DEPENDENCIES= seabedprop.lo
