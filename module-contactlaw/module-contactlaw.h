@@ -43,7 +43,11 @@
 #include "userelem.h"
 #include "module-seabed.h"
 #include "exchangevector.h"
+<<<<<<< HEAD
 #include "tanhfunc.h"
+=======
+#include "frictionforce.h"
+>>>>>>> 443587a971f615aab80508aa00292e2642dd7ecd
 
 class Contactlaw
 : virtual public Elem, public UserDefinedElem 
@@ -54,11 +58,17 @@ private:
 	 *===================================================================*/
 	//other private member
 	const StructNode *pNode1;
+<<<<<<< HEAD
 	/*
 	const StructNode *pNode2;
 	*/
 	const Seabed 			*pSeabed;
 	const tanhfunc 			ptanf;
+=======
+	const StructNode *pNode2;
+	const Seabed 			*pSeabed;
+	const frictionforce 	pff;
+>>>>>>> 443587a971f615aab80508aa00292e2642dd7ecd
 	const exchangevector	pexv; 
 	doublereal 				k;
 	doublereal 				c;

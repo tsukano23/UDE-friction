@@ -25,6 +25,7 @@ exchangevector::~exchangevector(void)
 	NO_OP;
 }
 
+<<<<<<< HEAD
 /*--[0A-1]inner_calc(内積計算)-----------------------------------------------------*/
 Vec3
 exchangevector::inner(Vec3& a, Vec3& b) const
@@ -51,6 +52,9 @@ exchangevector::inner(Vec3& a, Vec3& b) const
 
 
 /*--[0B-2]cross_calc(外積計算)----------------------------------------------------*/
+=======
+/*--外積計算--------------------------------------*/
+>>>>>>> 443587a971f615aab80508aa00292e2642dd7ecd
 Vec3
 exchangevector::cross(Vec3& a, Vec3& b) const
 {
@@ -71,6 +75,7 @@ exchangevector::cross(Vec3& a, Vec3& b) const
 	return r_cross;
 }
 
+<<<<<<< HEAD
 /*--[0B]cross_yacb_calc(外積ヤコビ行列計算)---------------------------------------*/
 
 
@@ -111,5 +116,27 @@ exchangevector::axial_vec(Vec3& axial_unitvec, Vec& normal_vec, Vec3& lateral_un
 	Vec3 axial_vec 		= cross(normal_vec, lateral_unitvec);
 	axial_unitvec 		= axial_vec/axial_vec.Norm();
 }
+=======
+/*--係留軸方向-----------------------------------*/
+void
+exchangevector::unitVec_axial(Vec3& unitaxial, const Vec3& r1, const Vec3& r2) const
+{
+	Vec3 axial 		= r2-r1;
+	unitaxial 		= axial/axial.Norm();
+}
+
+/*--係留軸に対して垂直（横）方向-----------------------------------
++係留軸方向とz軸（簡易版では[0,0,1],詳細版では海底地形に対して垂直）を利用して求める
++グローバル座標を座標変換することによって求める
+*/
+
+void
+exchangevector::unitVec_lateral(Vec3& unitlateral, Vec3& v_lateral) const
+{
+	unitlateral 		= v_lateral/v_lateral.Norm();
+}
+
+
+>>>>>>> 443587a971f615aab80508aa00292e2642dd7ecd
 
 /* ------------------------------- exchangevector end ----------------------------------------*/
