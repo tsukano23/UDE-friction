@@ -71,7 +71,7 @@ Seabed::Seabed (
 			"- Note: \n"
 			"\tTest, \n"
 			"- Usage: \n"
-			"\tSeabed, g, z;\n"
+			"\tSeabed, g, z, nu1d, nu1s, nu2d, nu2s;\n"
 			<< std::endl);
 		
 		if (!HP.IsArg()) {
@@ -79,9 +79,17 @@ Seabed::Seabed (
 		}
 	}
 
-	doublereal g = HP.GetReal();
-	doublereal z = HP.GetReal();
-	pSeabedprop.setValue(g, z);
+	//pSeabedprop
+	doublereal g 	= HP.GetReal();
+	doublereal z 	= HP.GetReal();
+	doublereal nu1d = HP.GetReal();
+	doublereal nu1s = HP.GetReal();
+	doublereal nu2d = HP.GetReal();
+	doublereal nu2s = HP.GetReal();
+	pSeabedprop.setValue(g, z, nu1d, nu1s, nu2d, nu2s);
+	//pExchangevector
+	
+
 
 	//output flag
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));

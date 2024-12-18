@@ -1,40 +1,40 @@
 /* -----------------------------------------------------------------------
- * MBDyn (C) is a multibody analysis code.
- * http://www.mbdyn.org
- *
- * Copyright (C) 1996-2017
- *
- * Pierangelo Masarati  <masarati@aero.polimi.it>
- *
- * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
- * via La Masa, 34 - 20156 Milano, Italy
- * http://www.aero.polimi.it
- *
- * Changing this copyright notice is forbidden.
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation (version 2 of the License).
- * 
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- * -----------------------------------------------------------------------*/
+* MBDyn (C) is a multibody analysis code.
+* http://www.mbdyn.org
+*
+* Copyright (C) 1996-2017
+*
+* Pierangelo Masarati  <masarati@aero.polimi.it>
+*
+* Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+* via La Masa, 34 - 20156 Milano, Italy
+* http://www.aero.polimi.it
+*
+* Changing this copyright notice is forbidden.
+*
+* This program is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation (version 2 of the License).
+* 
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+* -----------------------------------------------------------------------*/
 
 /* -----------------------------------------------------------------------
- * Module - contactlaw
- *
- * Implemented by
- * Ryoya Hisamatsu <hisamatsu@nams.kyushu-u.ac.jp>
- * Department of Marine Systems Engineering, Kyushu University
- * Motooka 744, Nishi-ku, Fukuoka 819-0395, Fukuoka, Japan 
- * -----------------------------------------------------------------------*/
+* Module - contactlaw
+*
+* Implemented by
+* Ryoya Hisamatsu <hisamatsu@nams.kyushu-u.ac.jp>
+* Department of Marine Systems Engineering, Kyushu University
+* Motooka 744, Nishi-ku, Fukuoka 819-0395, Fukuoka, Japan 
+* -----------------------------------------------------------------------*/
 
 #include "mbconfig.h"
 
@@ -47,13 +47,15 @@
 #include <limits>
 
 #include "module-contactlaw.h"
+#include "exchangevector.h"
+#include "tanhfunc.h"
 
 
 /* ----------------------------- contactlaw start --------------------------------------*/
 
 /*=======================================================================================
- * Constructor and Destructor
- *=======================================================================================*/
+* Constructor and Destructor
+*=======================================================================================*/
 //constructor
 Contactlaw::Contactlaw (
 	unsigned uLabel,
@@ -71,7 +73,9 @@ Contactlaw::Contactlaw (
 			"- Note: \n"
 			"\ttest\n"
 			"- Usage: \n"
-			"\tContactlaw;\n"
+			"\tContactlaw,\n"
+			"\t<node_label_1>,\n"
+			"\t<node_label_2>;\n"
 			<< std::endl);
 		if (!HP.IsArg()) {
 			throw NoErr(MBDYN_EXCEPT_ARGS);
@@ -80,8 +84,13 @@ Contactlaw::Contactlaw (
 
 	std:: cout << "1" << std::endl;
 
-	// read node
-	pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	// read node1
+	pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+	/*
+	// read node2
+	pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	*/
 
 	// read seabed object
 	unsigned int uElemLabel = (unsigned int)HP.GetInt();
@@ -89,27 +98,18 @@ Contactlaw::Contactlaw (
 
 	std:: cout << "2" << std::endl;
 
-	// read Mass
-	/*
-	if (!HP.IsKeyWord("m")) {
-		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"m\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	m = HP.GetReal();
-	*/
 	
-
 	// read k
 	if (!HP.IsKeyWord("k")) {
-		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"k\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"k\" expected at line " << HP.GetLineData() << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	k = HP.GetReal();
 
 	// read c
 	if (!HP.IsKeyWord("c")) {
-		silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"c\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	silent_cerr("Contactlaw(" << GetLabel() << "): keyword \"c\" expected at line " << HP.GetLineData() << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	c = HP.GetReal();
 
@@ -120,7 +120,10 @@ Contactlaw::Contactlaw (
 	//export log file
 	pDM->GetLogFile()
 		<< "Contactlaw: " << uLabel
-		<< " " << pNode->GetLabel()
+		<< " " << pNode1->GetLabel()
+		/*
+		<< " " << pNode2->GetLabel()
+		*/
 		<< " " << pSeabed->GetLabel()
 		<< std::endl;
 
@@ -136,11 +139,11 @@ Contactlaw::~Contactlaw (void)
 	std ::cout << "5" << std::endl;
 }
 
-	
+
 
 /*=======================================================================================
- * Intial Assembly Process
- *=======================================================================================*/
+* Intial Assembly Process
+*=======================================================================================*/
 //set number of DOF
 unsigned int
 Contactlaw::iGetInitialNumDof(void) const
@@ -189,8 +192,8 @@ Contactlaw::InitialAssJac(
 }
 
 /*=======================================================================================
- * Initial Value Problem
- *=======================================================================================*/
+* Initial Value Problem
+*=======================================================================================*/
 //set number of DOF
 unsigned int
 Contactlaw::iGetNumDof(void) const
@@ -203,7 +206,6 @@ Contactlaw::iGetNumDof(void) const
 DofOrder::Order
 Contactlaw::GetDofType(unsigned int i) const
 {
-
 	return DofOrder::DIFFERENTIAL;
 	std ::cout << "12" << std::endl;
 }
@@ -235,8 +237,8 @@ Contactlaw::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) con
 void
 Contactlaw::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = 1;
-	*piNumCols = 1;	
+	*piNumRows = 3;
+	*piNumCols = 3;	
 	//std ::cout << "14" << std::endl;
 }
 
@@ -249,38 +251,96 @@ Contactlaw::AssRes(
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	//obtain vector dimension
+	//node1 current data
+	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
+	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
+
+	/*
+	//node2 current data
+	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
+	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+	*/
+
+	//configuring workvec
 	integer iNumRows;
 	integer iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
+	}
+	/*
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
+	}
+	*/
 
-	//set index from global state vector
-	const integer iPositionIndex = pNode->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode->iGetFirstMomentumIndex();
-	WorkVec.PutRowIndex(1, iMomentumIndex+3);
-
-	//calculate forces
-	doublereal g,Zs;
-	pSeabed->get(g, Zs);
+	/*nodedata_config-----------------------------------------------*/
+	const Vec3 r1 = Vec3(
+			XCurr(iPositionIndex1+1),
+			XCurr(iPositionIndex1+2),
+			XCurr(iPositionIndex1+3)
+		);
+		const Vec3 v1 = Vec3(
+			XPrimeCurr(iPositionIndex1+1),
+			XPrimeCurr(iPositionIndex1+2),
+			XPrimeCurr(iPositionIndex1+3)
+		);
+	/*calculate refrecionforces------------------------------------*/
+	//seabedの定数定義
+	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
+	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
 	doublereal c1;
-	doublereal F;
 
-	doublereal z = XCurr(iPositionIndex+3) - Zs;
-	doublereal v = XPrimeCurr(iPositionIndex+3);
-	doublereal delta = std::abs(z);
+	//摩擦力計算時のFと摩擦係数定義
+	doublereal F;
+	doublereal nu;  
+
+	Vec3 normal_vec 			= Vec3(0.0,0.0,0.0);
+	Vec3 internode_unitvec 		= Vec3(0.0,0.0,0.0);
+	Vec3 axial_unitvec 			= Vec3(0.0,0.0,0.0);
+	Vec3 lateral_unitvec 		= Vec3(0.0,0.0,0.0);
+
+	doublereal z    	= r1.dGet(3) - Zs;
+	doublereal vz   	= v1.dGet(3);
+	doublereal delta 	= std::abs(z);
+
+
+	/*反力計算-----------------------------------------------------------*/
 	if (z>0.0) {
 		c1 = 0.0;
 		std::cout << "Res00" << std::endl;
 	} else {
 		c1 = 1.0;
-		std::cout << "Res01" << std::endl;
+		//tanh(x)を使って静摩擦から動摩擦の移行を表現
 	}
-	
-	F = (k*delta -c*v)*c1;
 
-	//set value
-	WorkVec.PutCoef(1, F);
+	//弾性床からの反力計算
+	F           = (k*delta -c*vz)*c1;
+
+	/*摩擦力計算----------------------------------------------------------*/
+	//摩擦係数
+	nu = nu1d;
+	//ベクトル
+	////法線ベクトル
+	normal_vec = pexv.normal_vec(normal_vec);
+	////internode(一つの質点では考えなくてよい)
+	////lateralnode(一つの質点では考えなくてよい)
+	////axialnode(一つの質点の場合、質点の速度方向でよい)
+	Vec3 axial_vec 		= v1;
+	Vec3 friction_vec 	= -v1;
+
+	//step関数で摩擦力の推移表現
+	doubleral vt 		= 5.e-3; 
+	doublereal dcrit    = v1.norm()/Vt;
+	Vec3 f_friction 	= ptanhfunc.tanh(dcrit,2.5)*nu*F*(friction_vec/v1.rorm());
+
+
+	//WorkVecに代入
+	WorkVec.Put(1, f_friction);
+	//WorkVec.Put(2, F_y);
+	//WorkVec.Put(3, F_z);
+
 	return WorkVec;
 	std ::cout << "15" << std::endl;
 }
@@ -296,47 +356,70 @@ Contactlaw::AssJac(
 {
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
+	//node1 current data
+	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
+	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
+	const Vec3& r1 = pNode1->GetXCurr();
+
+	/*
+	//node2 current data
+	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
+	const Vec3& r2 = pNode2->GetXCurr();
+	*/
+
 	//obtain vector dimension
 	integer iNumRows;
 	integer iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
 
-	//set index from global matrix
-  	const integer iPositionIndex = pNode->iGetFirstPositionIndex();
-	const integer iMomentumIndex = pNode->iGetFirstMomentumIndex();
-	WM.PutRowIndex(1, iMomentumIndex+3);
-	WM.PutColIndex(1, iPositionIndex+3);
+	for(int iCnt = 1; iCnt<=3; iCnt++){
+		WM.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
+		WM.PutColIndex(iCnt, iPositionIndex1+iCnt);
+	}	
+	/*
+	for(int iCnt = 1; iCnt<=3; iCnt++){
+		WM.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
+		WM.PutColIndex(iCnt+3, iPositionIndex2+iCnt);
+	}
+	*/
 
 	//calculate forces
-	doublereal g,Zs;
-	pSeabed->get(g,Zs);
+	/*
+	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s;
+	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s);
 	doublereal A;
 	doublereal dc1_dx;
 	doublereal dF_dx;
 
-	doublereal z = XCurr(iPositionIndex+3) - Zs;
-	doublereal v = XPrimeCurr(iPositionIndex+3);
+		doublereal z = XCurr(iPositionIndex+3) - Zs;
+		doublereal v = XPrimeCurr(iPositionIndex+3);
+		doublereal z = XCurr(iPositionIndex1+3) - Zs;
+		doublereal v = XPrimeCurr(iPositionIndex1+3);
 	if (z>0.0) {
-		dc1_dx = 0.0;
-		std::cout << "Jac00" << std::endl;
+	dc1_dx = 0.0;
+	std::cout << "Jac00" << std::endl;
 	} else {
-		dc1_dx = 1.0;
-		std::cout << "Jac01" << std::endl;
+	dc1_dx = 1.0;
+	std::cout << "Jac01" << std::endl;
 	}
 
 	A = (-c - dCoef*k)*dc1_dx;
-	
+
 
 	// set value
+	//どう計算すればよいのか相談
 	WM.PutCoef( 1,  1, A );
+	*/
 	return WorkMat;
 	std ::cout << "16" << std::endl;
 }
 
+
 /*=======================================================================================
- * Private Data
- *=======================================================================================*/
+* Private Data
+*=======================================================================================*/
 //set number of private data
 unsigned int
 Contactlaw::iGetNumPrivData(void) const
@@ -388,8 +471,8 @@ Hydrostatic::dGetPrivData(unsigned int i) const;
 */
 
 /*=======================================================================================
- * Configure runtime processing
- *=======================================================================================*/
+* Configure runtime processing
+*=======================================================================================*/
 //describe update function
 void 
 Contactlaw::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
@@ -423,8 +506,8 @@ Contactlaw::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 }
 
 /*=======================================================================================
- * Output
- *=======================================================================================*/
+* Output
+*=======================================================================================*/
 //output file 
 void
 Contactlaw::Output(OutputHandler& OH) const
@@ -441,8 +524,8 @@ Contactlaw::Output(OutputHandler& OH) const
 
 
 /*=======================================================================================
- * etc
- *=======================================================================================*/
+* etc
+*=======================================================================================*/
 //print information of connected nodes
 int
 Contactlaw::iGetNumConnectedNodes(void) const
@@ -460,7 +543,7 @@ Contactlaw::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 std::ostream&
 Contactlaw::Restart(std::ostream& out) const
 {
-   	return out << "# Contactlaw (" << GetLabel() << "): not implemented yet" << std::endl;
+	return out << "# Contactlaw (" << GetLabel() << "): not implemented yet" << std::endl;
 	std ::cout << "25" << std::endl;
 }
 
@@ -468,8 +551,8 @@ Contactlaw::Restart(std::ostream& out) const
 
 
 /*=======================================================================================
- *  Module init function
- *=======================================================================================*/
+*  Module init function
+*=======================================================================================*/
 extern "C"
 int module_init(const char *module_name, void *pdm, void *php)
 {

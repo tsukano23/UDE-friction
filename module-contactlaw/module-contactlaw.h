@@ -42,6 +42,8 @@
 #include "dataman.h"
 #include "userelem.h"
 #include "module-seabed.h"
+#include "exchangevector.h"
+#include "tanhfunc.h"
 
 class Contactlaw
 : virtual public Elem, public UserDefinedElem 
@@ -51,11 +53,18 @@ private:
 	 * Private Member Variables
 	 *===================================================================*/
 	//other private member
-	const StructNode *pNode;
-	const Seabed *pSeabed;
-	doublereal m; 
-	doublereal k;
-	doublereal c;
+	const StructNode *pNode1;
+	/*
+	const StructNode *pNode2;
+	*/
+	const Seabed 			*pSeabed;
+	const tanhfunc 			ptanf;
+	const exchangevector	pexv; 
+	doublereal 				k;
+	doublereal 				c;
+private:
+	
+
 
 public:
 	/*===================================================================

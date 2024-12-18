@@ -36,6 +36,7 @@
  * Motooka 744, Nishi-ku, Fukuoka 819-0395, Fukuoka, Japan 
  * -----------------------------------------------------------------------*/
 
+#include <mbconfig.h>
 #include "dataman.h"
 
 #ifndef SEABEDPROP_H
@@ -46,12 +47,22 @@ class seabedprop
 private:
     doublereal g;
     doublereal z_seabed;
+    doublereal nu1d;
+    doublereal nu1s;
+    doublereal nu2d;
+    doublereal nu2s;
 public:
     seabedprop(void);
     virtual ~seabedprop(void);
 
-    virtual void setValue(doublereal& pg, doublereal& pz);
-    virtual void get(doublereal& pg, doublereal& pz) const;
+    virtual void setValue(
+        doublereal& pg, doublereal& pz,
+        doublereal& pnu1d, doublereal& pnu1s, doublereal& pnu2d, doublereal& pnu2s
+        );
+    virtual void get(
+        doublereal& pg, doublereal& pz,
+        doublereal& pnu1d, doublereal& pnu1s, doublereal& pnu2d, doublereal& pnu2s
+        ) const;
 };
 
 #endif // SEABEDPROP_H
@@ -67,8 +78,14 @@ public:
     seabedpropowner(void);
     virtual ~seabedpropowner(void);
 
-    virtual void setSeabedprop(doublereal& g, doublereal& z);
-    virtual void get(doublereal& g, doublereal& z) const;
+    virtual void setSeabedprop(
+        doublereal& g, doublereal& z,
+        doublereal& nu1d, doublereal& nu1s, doublereal& nu2d, doublereal& nu2s
+        );
+    virtual void get(
+        doublereal& g, doublereal& z,
+        doublereal& nu1d, doublereal& nu1s, doublereal& nu2d, doublereal& nu2s
+        )const;
 };
 
 #endif // SEABEDPROPOWBER_H
