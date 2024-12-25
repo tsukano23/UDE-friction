@@ -16,15 +16,15 @@ public:
 
     //[0]
     ///A-1
-    virtual doublereal inner(Vec3& a, Vec3& b) const;
+    virtual doublereal inner(Vec3 a, Vec3 b) const;
     ///A-2
 
     ///B-1
-    virtual Vec3 cross(Vec3& a, Vec3& b) const;
+    virtual Vec3 cross(Vec3 a, Vec3 b) const;
     ///B-2
     
     ///C
-    virtual Vec3 op_vec(Vec3& a, Vec3& x) const;
+    virtual Vec3 op_vec(Vec3 a, Vec3 x) const;// Vec3&->Vec3 241218/23:55
     //[1]
     ///A
     virtual void normal_vec(Vec3& normal_vec) const;

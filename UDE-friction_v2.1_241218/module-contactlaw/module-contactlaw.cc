@@ -247,31 +247,19 @@ Contactlaw::AssRes(
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	/*configuring workvec------------------------------------------*/
-	integer iNumRows;
-	integer iNumCols;
-	WorkSpaceDim(&iNumRows, &iNumCols);
-	WorkVec.ResizeReset(iNumRows);
-	for(int iCnt = 1; iCnt <=3; iCnt++){
-		WorkVec.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
-	}
-	for(int iCnt = 1; iCnt <=3; iCnt++){
-		WorkVec.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
-	}
-
-	/*calculate refrecionforces------------------------------------*/
-	//seabedの定数定義
-	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s, vt;
-	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s, vt);
-
 	/*configuring current vector deta------------------------------------------*/
-	/*current data--------------------------------------------------*/
+	/*current node data--------------------------------------------------*/
 	//node1
 	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
 	const integer iMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
 	//node2
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+
+	/*calculate refrecionforces------------------------------------*/
+	//seabedの定数定義
+	doublereal g,Zs, nu1d, nu1s, nu2d, nu2s, vt;
+	pSeabed->get(g, Zs, nu1d, nu1s, nu2d, nu2s, vt);
 
 	/*nodedata_config-----------------------------------------------*/
 	const Vec3 r1 = Vec3(
@@ -295,6 +283,18 @@ Contactlaw::AssRes(
 			XPrimeCurr(iPositionIndex2+2),
 			XPrimeCurr(iPositionIndex2+3)
 		);
+
+	/*configuring workvec------------------------------------------*/
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
+	}
+	for(int iCnt = 1; iCnt <=3; iCnt++){
+		WorkVec.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
+	}
 
 	//node1===================================================================
 
@@ -339,30 +339,29 @@ Contactlaw::AssRes(
 
 	//摩擦力の負荷方向を質点の速度ベクトルをaxial(係留軸),lateral(係留軸横方向)で分解してそれぞれの反対方向に負荷させる
 	////axial(axial_unitvecとv1の正射影)
-	Vec3 friction_axialvec_1 		=  -pexv.op(v1, axial_unitvec_1);
+	Vec3 friction_axialvec_1 		=  -pexv.op_vec(v1, axial_unitvec_1);
 	////lateral(lateral_unitvecとv1の正射影)
-	Vec3 friction_lateralvec_1 	=  -pexv.op(v1, lateral_unitvec_1);
+	Vec3 friction_lateralvec_1 		=  -pexv.op_vec(v1, lateral_unitvec_1);
 
 	//step関数で摩擦力の推移表現
 	doublereal dcrit 			= 2.5; 
 	doublereal x_tanh_1   		= v1.Norm()/vt;
-	doublereal friction_abs_1	= ptanhf.tanh(x_tanh_1, dcrit)*nu*F1;
+	doublereal friction_abs_1	= ptanhf.tanh(x_tanh_1, dcrit)*nu1*F1;
 	Vec3 f_friction_axial_1 	= Vec3(
 							friction_abs_1*friction_axialvec_1.dGet(1),
 							friction_abs_1*friction_axialvec_1.dGet(2),
-							friction_abs_1*friction_axialvec_1.dGet(3) + F
+							friction_abs_1*friction_axialvec_1.dGet(3) + F1
 	);
 	Vec3 f_friction_lateral_1 	= Vec3(
-							friction_abs_1*friction_lateral_1.dGet(1),
-							friction_abs_1*friction_lateral_1.dGet(2),
-							friction_abs_1*friction_lateral_1.dGet(3) 
+							friction_abs_1*friction_lateralvec_1.dGet(1),
+							friction_abs_1*friction_lateralvec_1.dGet(2),
+							friction_abs_1*friction_lateralvec_1.dGet(3) 
 	);
 
 	//node2===================================================================
 	doublereal c2;
 	///摩擦力計算時のFと摩擦係数定義
 	doublereal F2;
-	doublereal nu2;
 
 	Vec3 normal_vec_2 			= Vec3(0.0,0.0,0.0);
 
@@ -401,27 +400,28 @@ Contactlaw::AssRes(
 
 	//摩擦力の負荷方向を質点の速度ベクトルをaxial(係留軸),lateral(係留軸横方向)で分解してそれぞれの反対方向に負荷させる
 	////axial(axial_unitvecとv1の正射影)
-	Vec3 friction_axialvec_2 		=  -pexv.op(v2, axial_unitvec_1);
+	Vec3 friction_axialvec_2 		=  -pexv.op_vec(v2, axial_unitvec_1);
 	////lateral(lateral_unitvecとv1の正射影)
-	Vec3 friction_lateralvec_2 		=  -pexv.op(v2, lateral_unitvec_1);
+	Vec3 friction_lateralvec_2 		=  -pexv.op_vec(v2, lateral_unitvec_1);
 
 	//step関数で摩擦力の推移表現
-	doublereal dcrit 			= 2.5; 
+	//doublereal dcrit 			= 2.5; 
 	doublereal x_tanh_2   		= v2.Norm()/vt;
 	doublereal friction_abs_2	= ptanhf.tanh(x_tanh_2, dcrit)*nu2*F2;
 	Vec3 f_friction_axial_2 	= Vec3(
 								friction_abs_2*friction_axialvec_2.dGet(1),
 								friction_abs_2*friction_axialvec_2.dGet(2),
-								friction_abs_2*friction_axialvec_2.dGet(3) + F
+								friction_abs_2*friction_axialvec_2.dGet(3) + F2
 	);
 	Vec3 f_friction_lateral_2 	= Vec3(
-								friction_abs_2*friction_lateral_2.dGet(1),
-								friction_abs_2*friction_lateral_2.dGet(2),
-								friction_abs_2*friction_lateral_2.dGet(3)
+								friction_abs_2*friction_lateralvec_2.dGet(1),
+								friction_abs_2*friction_lateralvec_2.dGet(2),
+								friction_abs_2*friction_lateralvec_2.dGet(3)
 	);
 
 	//WorkVecに代入
-	WorkVec.Put(1, f_friction_axial_1 + f_friction_lateral_1, 4, f_friction_axial_2 + f_friction_lateral_2);
+	WorkVec.Put(1, f_friction_axial_1 + f_friction_lateral_1);
+	WorkVec.Put(4, f_friction_axial_2 + f_friction_lateral_2);
 	return WorkVec;
 	std ::cout << "15" << std::endl;
 }
@@ -442,12 +442,12 @@ Contactlaw::AssJac(
 	const integer iPositionIndex1 = pNode1->iGetFirstPositionIndex();
 	const Vec3& r1 = pNode1->GetXCurr();
 
-	/*
+
 	//node2 current data
 	const integer iMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
 	const integer iPositionIndex2 = pNode2->iGetFirstPositionIndex();
 	const Vec3& r2 = pNode2->GetXCurr();
-	*/
+
 
 	//obtain vector dimension
 	integer iNumRows;
@@ -459,12 +459,12 @@ Contactlaw::AssJac(
 		WM.PutRowIndex(iCnt, iMomentumIndex1+iCnt);
 		WM.PutColIndex(iCnt, iPositionIndex1+iCnt);
 	}	
-	/*
+
 	for(int iCnt = 1; iCnt<=3; iCnt++){
 		WM.PutRowIndex(iCnt+3, iMomentumIndex2+iCnt);
 		WM.PutColIndex(iCnt+3, iPositionIndex2+iCnt);
 	}
-	*/
+
 
 	//calculate forces
 	/*

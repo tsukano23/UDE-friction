@@ -27,7 +27,7 @@ exchangevector::~exchangevector(void)
 
 /*--[0A-1]inner_calc(内積計算)-----------------------------------------------------*/
 doublereal
-exchangevector::inner(Vec3& a, Vec3& b) const
+exchangevector::inner(Vec3 a, Vec3 b) const
 {
     doublereal ax 	= a.dGet(1);
 	doublereal ay 	= a.dGet(2);
@@ -48,7 +48,7 @@ exchangevector::inner(Vec3& a, Vec3& b) const
 
 /*--[0B-2]cross_calc(外積計算)----------------------------------------------------*/
 Vec3
-exchangevector::cross(Vec3& a, Vec3& b) const
+exchangevector::cross(Vec3 a, Vec3 b) const
 {
     doublereal ax 	= a.dGet(1);
 	doublereal ay 	= a.dGet(2);
@@ -72,9 +72,9 @@ exchangevector::cross(Vec3& a, Vec3& b) const
 
 /*--[0B-2]orthographic_projection_vec_calc(正射影ベクトル計算)--------------------*/
 Vec3
-exchangevector::op_vec(Vec3& a, Vec3& x) const
+exchangevector::op_vec(Vec3 r, Vec3 x) const
 {
-	doublereal op_coef 	= (inner(a, x)/(x.Norm()*x.Norm()));
+	doublereal op_coef 	= (inner(r, x)/(x.Norm()*x.Norm()));
 	Vec3 	op_vec		= Vec3(
 						op_coef*x.dGet(1),
 						op_coef*x.dGet(2),

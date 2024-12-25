@@ -54,9 +54,7 @@ private:
 	 *===================================================================*/
 	//other private member
 	const StructNode *pNode1;
-	/*
 	const StructNode *pNode2;
-	*/
 	const Seabed 			*pSeabed;
 	const tanhfunc 			ptanhf;
 	const exchangevector	pexv; 
